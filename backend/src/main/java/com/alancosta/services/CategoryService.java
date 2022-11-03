@@ -3,11 +3,12 @@ package com.alancosta.services;
 import com.alancosta.dto.CategoryDTO;
 import com.alancosta.entities.Category;
 import com.alancosta.repositories.CategoryRepository;
-import com.alancosta.services.exceptions.EntityNotFoundException;
+import com.alancosta.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,7 +28,7 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public CategoryDTO findById(Long id) {
         Optional<Category> obj = repository.findById(id);
-        Category entity = obj.orElseThrow(() -> new EntityNotFoundException("Entidade não existe"));
+        Category entity = obj.orElseThrow(() -> new ResourceNotFoundException("Entidade não existe"));
         return new CategoryDTO(entity);
     }
 
@@ -38,4 +39,18 @@ public class CategoryService {
         entity = repository.save(entity);
         return new CategoryDTO(entity);
     }
+
+    @Transactional
+    public CategoryDTO update(Long id, CategoryDTO dto) {
+        try {
+            Category entity = repository.getReferenceById(id);
+            entity.setName(dto.getName());
+            entity = repository.save(entity);
+            return new CategoryDTO(entity);
+        }
+        catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException("Id not found " + id);
+        }
+    }
+
 }
